@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <title>Dashboard</title>
+    <style>
+      body,
+      html {
+        height: 100%;
+      }
+
+      .custom-input {
+        border: 3px solid black;
+        /* border-radius: 10px; */
+        text-align: center;
+        padding: 15px;
+        background-color: #ece5f5;
+      }
+      .fields {
+        border: 3px solid black;
+        /* border-radius: 10px; */
+        text-align: center;
+        padding: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid h-100">
+      <a href="/adminPage">
+        <button class="btn btn-outline-primary m-2 p-2" style="width: 100px">
+          Back
+        </button>
+      </a>
+      <div class="row mx-auto mt-5 d-flex">
+        <div class="col custom-input">
+          <h4>User Id</h4>
+        </div>
+        <div class="col custom-input">
+          <h4>Name</h4>
+        </div>
+        <div class="col custom-input">
+          <h4>Photo</h4>
+        </div>
+        <div class="col custom-input">
+          <h4>Accept</h4>
+        </div>
+      </div>
+      <div>
+        <% users.forEach(function(user){ %>
+        <div class="row mx-auto d-flex">
+          <div class="col fields">
+            <h4><%= user.userId %></h4>
+          </div>
+          <div class="col fields">
+            <h4><%= user.name %></h4>
+          </div>
+          <div class="col fields">
+            <img
+              src="<%= user.path %>"
+              alt="User Photo"
+              style="width: 80px; height: 80px"
+            />
+          </div>
+          <div class="col fields">
+            <% if (!user.confirmed) { %>
+            <button
+              class="btn btn-primary"
+              id="accept"
+              onclick="confirmUser('<%= user.userId %>')"
+            >
+              Accept
+            </button>
+            <button
+              class="btn btn-outline-primary"
+              id="reject"
+              onclick="rejectUser('<%= user.userId %>')"
+            >
+              Reject
+            </button>
+            <% } else { %>
+            <button
+              class="btn btn-outline-primary"
+              id="reject"
+              onclick="rejectUser('<%= user.userId %>')"
+            >
+              Reject
+            </button>
+            <% } %>
+          </div>
+        </div>
+
+        <% }); %>
+      </div>
+    </div>
+
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      function confirmUser(userId) {
+        const token = localStorage.getItem("token");
+
+        const data = {
+          userId: userId,
+          status: true,
+        };
+        fetch("http://localhost:3000/api/v1/admin/updateStatus", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        })
+          .then((res) => {
+            if (res.ok) {
+              console.log("User confirmed");
+              window.location.reload();
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      function rejectUser(userId) {
+        const token = localStorage.getItem("token");
+        const data = {
+          userId: userId,
+          status: false,
+        };
+        fetch("http://localhost:3000/api/v1/admin/updateStatus", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        })
+          .then((res) => {
+            if (res.ok) {
+              //   console.log(res);
+              window.location.reload();
+              console.log("User Rejected");
+            }
+          })
+          .catch((error) => {
+            console.error("Error: ", error);
+          });
+      }
+    </script>
+  </body>
+</html>
