@@ -37,7 +37,7 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 app.use("/api/v1/auth", authRouter);
-app.use('/api/v1/user',authentication,userRouter)
+app.use("/api/v1/user", authentication, userRouter);
 app.use("/api/v1/admin", authentication, authenticateAdmin, adminRouter);
 
 app.get("/", (req, res) => {
@@ -52,10 +52,10 @@ app.get("/adminPage", (req, res) => {
   res.render("adminPage");
 });
 
-app.get("/userProfile", (req, res) => {
-  console.log("cannot get user profile");
+app.get("/userProfile", async (req, res) => {
   res.render("userProfile");
 });
+
 app.post("/upload", authentication, (req, res) => {
   upload(req, res, (err) => {
     if (err) {
@@ -83,20 +83,22 @@ app.post("/upload", authentication, (req, res) => {
   });
 });
 
-
 app.get("/x", async (req, res) => {
   // Assuming you want to redirect to page 'y' with some headers
   const token = req.query.token;
   // console.log("This is the token",token);
-  const response = await fetch("http://localhost:3000/api/v1/admin/fetchUsers", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-    const data = await response.json();
+  const response = await fetch(
+    "http://localhost:3000/api/v1/admin/fetchUsers",
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  const data = await response.json();
   // Redirect to page 'y'
-  res.render("dashboard", {users:data});
+  res.render("dashboard", { users: data });
 });
 
 const port = process.env.PORT || 3000;
