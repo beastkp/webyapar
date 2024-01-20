@@ -23,10 +23,12 @@
         border: 50px solid #ece5f5;
         border-radius: 10px;
       }
-      .vertical-line {
-        border-left: 1px solid #000;
-        height: 100vh;
-        margin: 0;
+      @media (min-width: 768px) {
+        .vertical-line {
+          border-left: 1px solid #000;
+          height: 100vh;
+          margin: 0;
+        }
       }
       .buton {
         width: 100px;
@@ -35,8 +37,10 @@
   </head>
   <body>
     <div class="container-fluid h-100">
-      <div class="row h-100">
-        <div class="col d-flex align-items-center">
+      <div
+        class="h-100 d-md-flex justify-content-center align-items-center my-md-auto"
+      >
+        <div class="d-flex w-100 w-md-50 justify-content-center">
           <div class="mx-auto w-75 pb-3">
             <h1 class="text-center m-4 text-secondary">Create User</h1>
             <form action="" class="m-3 p-2">
@@ -65,7 +69,7 @@
           </div>
         </div>
         <hr class="vertical-line" />
-        <div class="col d-flex align-items-center">
+        <div class="d-flex w-100 w-md-50 align-items-center">
           <div class="mx-auto w-75 pb-3">
             <h1 class="text-center m-4 text-secondary">View User</h1>
             <form action="">
