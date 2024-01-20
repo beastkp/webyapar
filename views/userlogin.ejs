@@ -25,7 +25,7 @@
     <div class="container-fluid h-100">
       <div class="row h-100">
         <div
-          class="col-7 d-flex justify-content-center align-items-center"
+          class="col col-lg-7 col-md-5 d-md-flex d-none justify-content-center align-items-center"
           style="background-color: rgb(0, 51, 102); height: 100%"
         >
           <div class="d-flex justify-content-center align-items-center">
@@ -98,7 +98,12 @@
           const data = await res.json();
           console.log(data.token);
           if (data.user.role === "user") {
-            location.assign("/userProfile");
+            const userProfilePageURL = "/userProfile";
+            const userId = document.querySelector('[name="userId"]').value;
+
+            const redirectURL = `${userProfilePageURL}?id=${userId}`;
+
+            location.assign(redirectURL);
           } else {
             location.assign("/");
           }
