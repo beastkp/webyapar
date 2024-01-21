@@ -12,6 +12,7 @@ dotenv.config();
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
+app.use("/cropperjs", express.static("cropperjs"));
 app.set("views", path.join(__dirname, "views"));
 
 const authRouter = require("./routes/authRoute");
@@ -21,6 +22,7 @@ const authenticateAdmin = require("./middleware/adminAuthorization");
 const authentication = require("./middleware/authorization");
 
 const multer = require("multer");
+const { findOneAndUpdate } = require("./models/user");
 
 const storage = multer.diskStorage({
   destination: "uploads",
@@ -57,28 +59,47 @@ app.get("/userProfile", async (req, res) => {
 });
 
 app.post("/upload", authentication, (req, res) => {
-  upload(req, res, (err) => {
+  upload(req, res, async (err) => {
     if (err) {
       console.log(err);
     } else {
       console.log(req.file.filename);
-      const newImage = new ImageModel({
-        name: req.body.name,
-        image: {
-          data: req.file.filename,
-          contentType: "image/png or jpeg",
+      const existingUser = await ImageModel.findOneAndUpdate(
+        { name: req.body.name },
+        {
+          $set: {
+            image: {
+              data: req.file.filename,
+              contentType: "image/png or jpeg",
+            },
+            path: "/uploads/" + req.file.filename,
+          },
         },
-        path: "/uploads/" + req.file.filename,
-        userId: req.user.userId,
-      });
-      newImage
-        .save()
-        .then(() => {
-          res.json({ newImage: newImage, message: "Successfully uploaded" });
-        })
-        .catch((err) => {
-          console.log(err);
+        { new: true }
+      );
+      if (!existingUser) {
+        const newImage = new ImageModel({
+          name: req.body.name,
+          image: {
+            data: req.file.filename,
+            contentType: "image/png or jpeg",
+          },
+          path: "/uploads/" + req.file.filename,
+          userId: req.user.userId,
         });
+        newImage
+          .save()
+          .then(() => {
+            return res.json({ newImage: newImage, message: "Successfully uploaded" });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+      else{
+        res.status(200).json({newImage:existingUser,message:"successfullly updated!"});
+
+      }
     }
   });
 });
