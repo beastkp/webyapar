@@ -27,12 +27,13 @@
         border: 3px solid black;
         /* border-radius: 10px; */
         text-align: center;
+        height: 120px;
         padding: 15px;
       }
     </style>
   </head>
   <body>
-    <div class="container-fluid h-100">
+    <div class="container-fluid h-100 d-none d-md-block">
       <a href="/adminPage">
         <button class="btn btn-outline-primary m-2 p-2" style="width: 100px">
           Back
@@ -98,6 +99,29 @@
 
         <% }); %>
       </div>
+    </div>
+
+    <div class="container-fluid h-100 d-flex flex-column d-md-none">
+      <a href="/adminPage">
+        <button class="btn btn-outline-primary m-2 p-2" style="width: 100px">
+          Back
+        </button>
+      </a>
+      <% users.forEach(function(user,index){ %>
+        <button class="btn btn-primary p-2 m-3" onclick="toggleDiv('<%= index %>')">View <%= user.userId %></button>
+        <div id="content<%= index %>" style="display: none; text-align: center" >
+          <div class="d-flex flex-column align-items-center p-3">
+            <p>User Id: <%= user.userId %></p>
+            <p>Name: <%= user.name %></p>
+            <img src="<%= user.path %>" alt="User Photo" class="img-fluid w-50" />
+            <div class="d-flex p-2 justify-content-center align-items-center mx-auto ">
+              <button class="btn btn-outline-primary mt-2 p-2 mx-1" onclick="confirmUser('<%= user.userId %>')">Accept</button>
+              <button class="btn btn-outline-primary mt-2 p-2 mx-1" onclick="rejectUser('<%= user.userId %>')">Reject</button>
+            </div>
+
+          </div>
+        </div>
+     <% }); %>
     </div>
 
     <script
@@ -166,6 +190,16 @@
           .catch((error) => {
             console.error("Error: ", error);
           });
+      }
+
+      function toggleDiv(index) {
+        var contentDiv = document.getElementById("content" + index);
+        if(contentDiv.style.display === "none"){
+          contentDiv.style.display = "block";
+        }
+        else{
+          contentDiv.style.display = "none";
+        }
       }
     </script>
   </body>

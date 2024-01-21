@@ -10,6 +10,11 @@
       crossorigin="anonymous"
     />
     <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/cropperjs/dist/cropper.min.css"
+    />
+    <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
     <style>
       body,
       html {
@@ -53,9 +58,9 @@
         border-radius: 10px;
       }
       .imgdims {
-        width: 100%; /* Adjusted to fill the modal width */
+        width: 100%;
         height: auto; /* Maintain aspect ratio */
-        max-height: 300px; /* Limit max height for smaller screens */
+        max-height: 300px;
         margin: auto;
         border: 1px solid #ddd; /* Add a border for clarity */
         border-radius: 5px;
@@ -89,11 +94,60 @@
   <body>
     <div class="container h-100 d-flex flex-column justify-content-center">
       <div class="m-2 p-1 ml-auto">
-        <button class="btn btn-outline-primary" onclick="showModal()">
+        <button class="btn btn-outline-primary fixed" onclick="showModal()">
           View
         </button>
       </div>
       <div class="mx-auto w-lg-50 pb-3 my-auto">
+        <div
+          class="modal fade cropped-container"
+          id="exampleModal"
+          tabindex="-1"
+          role="dialog"
+          aria-labelledby="exampleModalLabel"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title text-center" id="exampleModalLabel">
+                  Cropped Image
+                </h5>
+                <button
+                  type="button"
+                  class="close"
+                  data-dismiss="modal"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <img src="" alt="" id="output" class="imgdims p-2" />
+              </div>
+              <div class="modal-footer">
+                <form action="" id="modalForm">
+                  <input type="text" id="originalName" style="display: none" />
+                  <input type="file" id="imageInput" style="display: none" />
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="saveChangesBtn"
+                  >
+                    Save changes
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
         <form
           action="/upload"
           method="post"
@@ -115,8 +169,29 @@
             name="testImage"
             id="testImage"
             accept="image/*"
-            class="form-control m-3 p-2 col-xl mx-auto h-45 custom-input"
+            class="form-control m-3 p-2 col-xl mx-auto"
           />
+          <div>
+            <img id="image" src="" alt="" class="imgdims p-2" />
+          </div>
+          <button
+            class="btn btn-outline-secondary btn-block"
+            type="button"
+            id="btn-crop"
+            style="display: none"
+            onclick="cropped();"
+            data-toggle="modal"
+            data-target="#exampleModal"
+          >
+            Confirm Crop
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-block"
+            onclick="cropImage()"
+            id="beforeCrop"
+          >
+            Crop
+          </button>
           <button class="btn btn-primary btn-block" type="submit">
             Upload
           </button>
@@ -166,6 +241,81 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
+      function dataURItoBlob(dataURI) {
+        try {
+          const base64Index = dataURI.indexOf(",") + 1;
+          const base64 = dataURI.substring(base64Index);
+
+          const byteString = atob(base64);
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+
+          // Create Blob
+          return new Blob([ab], { type: "image/jpeg" });
+        } catch (error) {
+          console.error("Error converting data URI to Blob:", error);
+          throw error;
+        }
+      }
+      document
+        .getElementById("saveChangesBtn")
+        .addEventListener("click", () => {
+          const imageSrc = document.getElementById("output").src;
+
+          const blob = dataURItoBlob(imageSrc);
+          const file = new File(
+            [blob],
+            `${document.getElementById("name").value}.jpg`,
+            { type: "image/png" }
+          );
+          const formData = new FormData();
+          formData.append("name", document.getElementById("name").value);
+          formData.append("testImage", file);
+
+          // Send the form data using AJAX
+          $.ajax({
+            type: "POST",
+            url: "/upload",
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            success: function (response) {
+              console.log(response.newImage);
+            },
+            error: function (error) {
+              console.error(error);
+            },
+          });
+        });
+
+      let cropper;
+      function cropImage() {
+        const image = document.getElementById("image");
+        cropper = new Cropper(image, {
+          aspectRatio: 0,
+        });
+        document.getElementById("beforeCrop").style.display = "none";
+        document.getElementById("btn-crop").style.display = "block";
+      }
+      function cropped() {
+        document
+          .querySelector("#btn-crop")
+          .addEventListener("click", function () {
+            var cropperImage = cropper
+              .getCroppedCanvas()
+              .toDataURL("image/png");
+            document.getElementById("output").src = cropperImage;
+            document.querySelector(".cropped-container").style.display = "flex";
+            document.getElementById("image").style.display = "none";
+          });
+      }
       function getQueryParam(name) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name);
@@ -228,6 +378,7 @@
           event.preventDefault();
 
           const formData = new FormData(event.target);
+          console.log(formData);
 
           // Send the form data using AJAX
           $.ajax({
@@ -240,6 +391,7 @@
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
             success: function (response) {
+              console.log(response.newImage);
               const filePath = response.newImage.path;
 
               const name = document.getElementById("name").value;
@@ -249,6 +401,8 @@
 
               const modalImageElement = document.getElementById("modalImage");
               modalImageElement.src = filePath;
+              const image = document.getElementById("image");
+              image.src = filePath;
             },
             error: function (error) {
               console.error(error);
